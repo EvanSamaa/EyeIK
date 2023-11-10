@@ -1,18 +1,27 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import sys
+sys.path.insert(0, '/Users/evanpan/Documents/GitHub/EvansToolBox/Utils')
+sys.path.insert(0, '/Users/evanpan/Documents/GitHub/Gaze_project')
+sys.path.insert(0, "C:/Users/evansamaa/Documents/GitHub/EvansToolBox/Utils")
+sys.path.insert(0, "C:/Users/evansamaa/Documents/GitHub/Gaze_project")
+sys.path.insert(0, "C:/Users/evan1/Documents/GitHub/EvansToolBox/Utils")
+sys.path.insert(0, "C:/Users/evan1/Documents/GitHub/Gaze_project")
+
 from Geometry_Util import rotation_angles_frome_positions, rotation_axis_angle_from_vector, rotation_matrix_from_axis_angle, rotation_matrix_from_vectors
 from Signal_processing_utils import dx_dt
-
+from InputStructures import InputStructure
 
 # class InternalModelCenterBias:
 class InternalModelExact:
-    def __init__(self, scene: Dietic_Conversation_Gaze_Scene_Info):
+    def __init__(self, scene: InputStructure):
         self.scene = scene
     def estimate_target_pose(self, index):
         return self.scene.object_pos[index]
     def get_base_pose(self):
         return self.scene.speaker_face_direction_local
-class SacccadeGenerator:
+class EyeCatch_SacccadeGenerator:
+    # helper functions
     def interpolate_goal(self, t):
         if t < self.target_times[0]:
             return self.target_positions[0]
