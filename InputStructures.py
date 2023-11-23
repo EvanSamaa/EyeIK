@@ -101,12 +101,7 @@ class InputStructure:
                 return out
     def get_all_positions(self, coordinate_space="local"):
         objs = self.get_object_positions(coordinate_space=coordinate_space)
-        active_objs = self.get_active_object_position()
-        wp = self.get_wondering_points(coordinate_space=coordinate_space, neutral_gaze_spot_local=active_objs)
-        if self.wonder:
-            possss = np.concatenate([objs, wp], axis=0)
-        else:
-            possss = np.concatenate([objs], axis=0)
+        possss = np.concatenate([objs], axis=0)
         return possss
     def get_interest(self, object_id, t):
         interest_arr = self.object_interest[object_id]

@@ -87,6 +87,14 @@ class EyeCatch_SacccadeGenerator:
         diff = np.linalg.norm(rot0 - rot1)
         duration = 20 + diff * 1.33
         return duration / 1000
+    def get_head_movement_duration(self, pos0, pos1):
+        return 0.4
+    def head_velocity_profile(self, t0: float, tf: float, dt: float):
+        t0 = int(t0 / dt)
+        tf = int(tf / dt)
+        t = np.arange(t0, tf, 1)
+        v = 30 / np.power(tf - t0, 5) * ((t - t0) ** 2) * ((t - tf) ** 2)
+        return v
     def gaze_velocity_profile(self, t0: float, tf: float, dt: float):
         t0 = int(t0 / dt)
         tf = int(tf / dt)
@@ -120,26 +128,38 @@ class EyeCatch_SacccadeGenerator:
 
         # get the rotation axis and angle to get to the goal position
         rot_axis, rot_angle = rotation_axis_angle_from_vector(p0, p1)
+        # make sure the rotation angle is positive
+        if rot_angle < 0:
+            rot_angle = -rot_angle
+            rot_axis = -rot_axis
+            
         # test whether there is a gimbal lock situation
         test_rot_matrix = rotation_matrix_from_axis_angle(rot_axis, rot_angle)
         # in the case of no gimbal lock
-        if np.linalg.norm((test_rot_matrix @ p0) - p1) <= 0.000001:
-            # threshold the rotation speed
-            rot_angle = np.maximum(0.0, rot_angle*0.7)
-            # compute the actual rotation matrix
-            rot_matrix = rotation_matrix_from_axis_angle(rot_axis, rot_angle)
-            # find the displacement using the rotation
-            submovement_direction = (rot_matrix - np.eye(3)) @ (p0)
-        # in the case of gimbal lock, we use a linear angle reduction instead based on limiting the arc length
-        else:
-            submovement_direction = (p1 - p0)
-            submovement_magnitude = np.linalg.norm(submovement_direction)
-            reduced_submovement_magnitude = np.maximum(0, submovement_magnitude*0.7)
-            submovement_direction = submovement_direction / submovement_magnitude * reduced_submovement_magnitude
+        # if np.linalg.norm((test_rot_matrix @ p0) - p1) <= 0.000001:
+        #     # threshold the rotation speed
+        #     rot_angle = np.maximum(0.0, rot_angle*0.7)
+        #     # compute the actual rotation matrix
+        #     rot_matrix = rotation_matrix_from_axis_angle(rot_axis, rot_angle)
+        #     # find the displacement using the rotation
+        #     submovement_direction = (rot_matrix - np.eye(3)) @ (p0)
+        # # in the case of gimbal lock, we use a linear angle reduction instead based on limiting the arc length
+        # else:
+        #     submovement_direction = (p1 - p0)
+        #     submovement_magnitude = np.linalg.norm(submovement_direction)
+        #     reduced_submovement_magnitude = np.maximum(0, submovement_magnitude*0.7)
+        #     submovement_direction = submovement_direction / submovement_magnitude * reduced_submovement_magnitude
+
+        # modify the rotation angle such that if it's less than 20 degree, do not turn head
+        modified_rotation_angle = max(0, rot_angle - 0.349)
+        # modified_rotation_angle = rot_angle
+        skew_symmetric_matrix_rot_axis = np.array([[0, -rot_axis[2], rot_axis[1]], [rot_axis[2], 0, -rot_axis[0]], [-rot_axis[1], rot_axis[0], 0]])
+        rot_matrix = np.eye(3) + np.sin(modified_rotation_angle) * skew_symmetric_matrix_rot_axis + (1 - np.cos(modified_rotation_angle)) * skew_symmetric_matrix_rot_axis @ skew_symmetric_matrix_rot_axis
+        submovement_direction = (rot_matrix - np.eye(3)) @ (p0_not_normalized)
 
         self.head_current_goal_position = p0 + submovement_direction
         # find the speed
-        submovement_speed = self.gaze_velocity_profile(t0, t1, self.simulation_dt)
+        submovement_speed = self.head_velocity_profile(t0, t1, self.simulation_dt)
         submovement_speed = np.expand_dims(submovement_speed, axis=1)
 
         submovement_direction = np.expand_dims(submovement_direction, axis=0)
@@ -178,6 +198,7 @@ class EyeCatch_SacccadeGenerator:
             output_list.append([prev_saccade_frame_counter, offset_x, offset_y])
             prev_saccade_frame_counter += saccade_duration
         return output_list, prev_saccade_frame_counter
+
     def compute(self):
         # add an end time to the sequence
         end_t = self.target_times[-1] + 10.0
@@ -219,9 +240,9 @@ class EyeCatch_SacccadeGenerator:
                     self.gaze_positions[t_index] += gaze_submovement[0]
 
                 # obtain head shift duration
-                head_movement_duration = .4
+                head_movement_duration = self.get_head_movement_duration(self.head_current_goal_position, self.gaze_current_goal_position)
                 # add the head movement
-                head_submovement, head_submovement_range = self.add_head_submovement(self.t, self.t + head_movement_duration, self.head_current_goal_position, self.gaze_current_goal_position)
+                head_submovement, head_submovement_range = self.add_head_submovement(self.t , self.t + head_movement_duration , self.head_current_goal_position, self.gaze_current_goal_position)
                 if not head_submovement is None:
                     head_submovements.append(head_submovement)
                     head_submovements_indexes.append(head_submovement_range)
@@ -258,7 +279,6 @@ class EyeCatch_SacccadeGenerator:
                 else:
                     start = end
             end += self.simulation_dt
-        print(stable_windows)
         prev_saccade = 0
         for i in range(0, len(stable_windows)):
             start = stable_windows[i][0]
