@@ -1,6 +1,5 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from prototypes.InputDataStructures import Dietic_Conversation_Gaze_Scene_Info
 from Geometry_Util import rotation_angles_frome_positions, rotation_axis_angle_from_vector, rotation_matrix_from_axis_angle, rotation_matrix_from_vectors
 from Signal_processing_utils import dx_dt
 
