@@ -113,8 +113,8 @@ class Oyekoya_SacccadeGenerator:
         submovement_direction = np.tile(submovement_direction, [submovement_speed.shape[0], 1])
         submovement = submovement_speed * submovement_direction
         # get the starting and ending frame of the submovmeent
-        starting_frame = int(t0 / self.simulation_dt)
-        ending_frame = int(t1 / self.simulation_dt)
+        starting_frame = int(np.round(t0 / self.simulation_dt))
+        ending_frame = starting_frame + submovement.shape[0]
         # update current gaze_goal position
         self.gaze_current_goal_position = p1
         return submovement, [starting_frame, ending_frame]
@@ -207,7 +207,7 @@ class Oyekoya_SacccadeGenerator:
         gaze_submovements_indexes = [] # use to store the index of each submovement
         head_submovements = [] # use to store a list of existing submovements
         head_submovements_indexes = [] # use to store the index of each submovement
-        while round(self.t) < end_t:
+        while np.ceil(self.t) < end_t:
             t_index = int(np.round(self.t / self.simulation_dt))
             # use to store the gaze and head submovements that have expired
             expired_gaze = []
@@ -217,13 +217,17 @@ class Oyekoya_SacccadeGenerator:
             for i in range(0, len(gaze_submovements)):
                 if t_index < gaze_submovements_indexes[i][1]:
                     self.gaze_positions[t_index] += gaze_submovements[i][t_index - gaze_submovements_indexes[i][0]]
+                elif t_index < gaze_submovements_indexes[i][0]:
+                    pass
                 else:
                     expired_gaze.append(i)
             # update the head positions
             self.head_positions[t_index] = self.head_positions[max(t_index - 1, 0)]
             for i in range(0, len(head_submovements)):
-                if t_index < head_submovements_indexes[i][1]:
+                if t_index < head_submovements_indexes[i][1] and t_index >= head_submovements_indexes[i][0]:
                     self.head_positions[t_index] += head_submovements[i][t_index - head_submovements_indexes[i][0]]
+                elif t_index < head_submovements_indexes[i][0]:
+                    pass
                 else:
                     expired_head.append(i)
             # only generate saccade at fixed intervals i.e. if saccade_generation_test is an integer
@@ -292,6 +296,8 @@ class Oyekoya_SacccadeGenerator:
         head_kf = []
         ts = np.arange(0, self.target_times[-1] + 10.0, self.simulation_dt)
         # insert the key frames for gaze into the output array
+        if ts.shape[0] > self.gaze_positions.shape[0]:
+            ts = ts[0:self.gaze_positions.shape[0]]
         for i in range(0, ts.shape[0]):
             eye_kf.append([float(ts[i]), float(self.gaze_positions[i][0]), float(self.gaze_positions[i][1]), float(self.gaze_positions[i][2])])
 

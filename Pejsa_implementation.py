@@ -41,7 +41,7 @@ class Pejsa_SacccadeGenerator:
 
         # meta parameters:
         self.head_latency = 0.1
-        self.simulation_dt = 0.02
+        self.simulation_dt = 0.01
         self.submovement_dt = 0.200
         self.head_propensity = head_propensity
         self.movement_threshold = 2000 # use to detect intervals with no gaze shift. In which micro saccade are generated
@@ -170,7 +170,6 @@ class Pejsa_SacccadeGenerator:
         submovement_speed = np.diff(submovement_directions, axis=0, prepend=submovement_directions[0:1])
         self.head_current_goal_position = submovement_directions[-1]
         submovement = submovement_speed
-        print(rot_angle, submovement.shape)
         # find the starting and ending frame of the movement
         starting_frame = int(np.round(t0 / self.simulation_dt))
         ending_frame = int(np.round(t0 / self.simulation_dt + submovement_speed.shape[0])) - 1
@@ -214,7 +213,7 @@ class Pejsa_SacccadeGenerator:
         gaze_submovements_indexes = [] # use to store the index of each submovement
         head_submovements = [] # use to store a list of existing submovements
         head_submovements_indexes = [] # use to store the index of each submovement
-        while round(self.t) < end_t:
+        while np.ceil(self.t) < end_t:
             t_index = int(np.round(self.t / self.simulation_dt))
             # use to store the gaze and head submovements that have expired
             expired_gaze = []
@@ -224,13 +223,17 @@ class Pejsa_SacccadeGenerator:
             for i in range(0, len(gaze_submovements)):
                 if t_index < gaze_submovements_indexes[i][1]:
                     self.gaze_positions[t_index] += gaze_submovements[i][t_index - gaze_submovements_indexes[i][0]]
+                elif t_index < gaze_submovements_indexes[i][0]:
+                    pass
                 else:
                     expired_gaze.append(i)
             # update the head positions
             self.head_positions[t_index] = self.head_positions[max(t_index - 1, 0)]
             for i in range(0, len(head_submovements)):
-                if t_index < head_submovements_indexes[i][1]:
+                if t_index < head_submovements_indexes[i][1] and t_index >= head_submovements_indexes[i][0]:
                     self.head_positions[t_index] += head_submovements[i][t_index - head_submovements_indexes[i][0]]
+                elif t_index < head_submovements_indexes[i][0]:
+                    pass
                 else:
                     expired_head.append(i)
             # only generate saccade at fixed intervals i.e. if saccade_generation_test is an integer
@@ -308,6 +311,8 @@ class Pejsa_SacccadeGenerator:
         eye_kf = []
         head_kf = []
         ts = np.arange(0, self.target_times[-1] + 10.0, self.simulation_dt)
+        if ts.shape[0] > self.gaze_positions.shape[0]:
+            ts = ts[0:self.gaze_positions.shape[0]]
         # insert the key frames for gaze into the output array
         for i in range(0, ts.shape[0]):
             eye_kf.append([float(ts[i]), float(self.gaze_positions[i][0]), float(self.gaze_positions[i][1]), float(self.gaze_positions[i][2])])

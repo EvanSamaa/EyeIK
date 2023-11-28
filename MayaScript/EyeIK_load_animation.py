@@ -230,5 +230,5 @@ def load_gaze(filename, rig, tobii = False):
 # load_gaze("C:/Users/evansamaa/Desktop/Gaze_project/data/tobii_data/shakira/tobii_rotation.pkl", "jali", True)
 
 # load_gaze("F:/MASC/JALI_gaze/Animations/green_book_letter/outputs/raw_clip_neural_0.pkl", "jali")
-load_gaze("C:/Users/evansamaa/Documents/GitHub/EyeIK/animation_data\Andrist.pkl", "jali")
+load_gaze("C:/Users/evan1/OneDrive/Documents/GitHub/EyeIK/animation_data\Proposed.pkl", "jali")
 # load_gaze("F:/MASC/JALI_gaze/animations/eval_royal_with_cheese/non_conversational_output/pulp_fiction_1.pkl", "jali")

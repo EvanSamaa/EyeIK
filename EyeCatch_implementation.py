@@ -208,8 +208,8 @@ class EyeCatch_SacccadeGenerator:
         gaze_submovements_indexes = [] # use to store the index of each submovement
         head_submovements = [] # use to store a list of existing submovements
         head_submovements_indexes = [] # use to store the index of each submovement
-        while round(self.t) < end_t:
-            t_index = int(np.round(self.t / self.simulation_dt))
+        while np.ceil(self.t) < end_t:
+            t_index = int(np.floor(self.t / self.simulation_dt))
             # use to store the gaze and head submovements that have expired
             expired_gaze = []
             expired_head = []
@@ -292,7 +292,10 @@ class EyeCatch_SacccadeGenerator:
         eye_kf = []
         head_kf = []
         ts = np.arange(0, self.target_times[-1] + 10.0, self.simulation_dt)
+        if ts.shape[0] > self.gaze_positions.shape[0]:
+            ts = ts[0:self.gaze_positions.shape[0]]        
         # insert the key frames for gaze into the output array
+        
         for i in range(0, ts.shape[0]):
             eye_kf.append([float(ts[i]), float(self.gaze_positions[i][0]), float(self.gaze_positions[i][1]), float(self.gaze_positions[i][2])])
 

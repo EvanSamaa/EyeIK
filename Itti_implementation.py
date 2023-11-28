@@ -40,7 +40,7 @@ class Itti_SacccadeGenerator:
         self.head_most_recent_index = 0
 
         # meta parameters:
-        self.simulation_dt = 0.02
+        self.simulation_dt = 0.01
         self.submovement_dt = 0.200
         self.movement_threshold = 2000 # use to detect intervals with no gaze shift. In which micro saccade are generated
 
@@ -199,7 +199,7 @@ class Itti_SacccadeGenerator:
         gaze_submovements_indexes = [] # use to store the index of each submovement
         head_submovements = [] # use to store a list of existing submovements
         head_submovements_indexes = [] # use to store the index of each submovement
-        while round(self.t) < end_t:
+        while np.ceil(self.t) < end_t:
             t_index = int(np.round(self.t / self.simulation_dt))
             # use to store the gaze and head submovements that have expired
             expired_gaze = []
@@ -229,8 +229,6 @@ class Itti_SacccadeGenerator:
                     gaze_submovements.append(gaze_submovement)
                     gaze_submovements_indexes.append(gaze_submovement_range)
                     self.gaze_positions[t_index] += gaze_submovement[0]
-
-
                 # ============================== compute the head angle to turn based on equation 15 from the paper ==============================
                 # obtain the head_angle betwee self.head_current_goal_position and self.gaze_current_goal_position
                 Hrot_axis, H_angle = rotation_axis_angle_from_vector(self.head_current_goal_position, self.gaze_current_goal_position)
@@ -302,6 +300,8 @@ class Itti_SacccadeGenerator:
         eye_kf = []
         head_kf = []
         ts = np.arange(0, self.target_times[-1] + 10.0, self.simulation_dt)
+        if ts.shape[0] > self.gaze_positions.shape[0]:
+            ts = ts[0:self.gaze_positions.shape[0]]
         # insert the key frames for gaze into the output array
         for i in range(0, ts.shape[0]):
             eye_kf.append([float(ts[i]), float(self.gaze_positions[i][0]), float(self.gaze_positions[i][1]), float(self.gaze_positions[i][2])])

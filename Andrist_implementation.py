@@ -41,7 +41,7 @@ class Andrist_SacccadeGenerator:
 
         # meta parameters:
         self.head_latency = 0.1
-        self.simulation_dt = 0.02
+        self.simulation_dt = 0.01
         self.submovement_dt = 0.200
         self.head_propensity = head_propensity
         self.movement_threshold = 2000 # use to detect intervals with no gaze shift. In which micro saccade are generated
@@ -151,7 +151,7 @@ class Andrist_SacccadeGenerator:
         t1 = t0
         vel = 2
         # the the scalar angles based on the velocity profile
-        while np.abs(rot_angle - angle) > 0.2:
+        while rot_angle - angle >= 0.2:
             vel = self.get_head_velocity(np.minimum(0.98, np.maximum(angle / rot_angle, 0.01))) * self.get_head_movement_maximum_speed(p0, p1)
             angle += vel * self.simulation_dt
             submovement_postion += [angle]
@@ -161,8 +161,6 @@ class Andrist_SacccadeGenerator:
         #     submovement_length = len(submovement_postion)
         #     allowed_length = int(np.round((submovement_length - forced_stop_length) * self.head_propensity) - (0.1 / self.simulation_dt))
         #     submovement_postion = submovement_postion[0:forced_stop_length + int(np.round(allowed_length))]
-
-            
         # submovement_postion[-1] = rot_angle       
         # get the direction vector for each intermediate position:\
         skew_symmetric_matrix_rot_axis = np.array([[0, -rot_axis[2], rot_axis[1]], [rot_axis[2], 0, -rot_axis[0]], [-rot_axis[1], rot_axis[0], 0]])
@@ -182,7 +180,6 @@ class Andrist_SacccadeGenerator:
         if ending_frame < starting_frame:
             return None, None
         # return the submovement and everything
-
         return submovement, [starting_frame, ending_frame]
     def handle_microsaccade(self, start_frame, prev_saccade_frame, end_frame, saccade_factor=0.05, avg_saccade_interval=0.5):
         output_list = []
@@ -220,7 +217,7 @@ class Andrist_SacccadeGenerator:
         gaze_submovements_indexes = [] # use to store the index of each submovement
         head_submovements = [] # use to store a list of existing submovements
         head_submovements_indexes = [] # use to store the index of each submovement
-        while round(self.t) < end_t:
+        while np.ceil(self.t) < end_t:
             t_index = int(np.round(self.t / self.simulation_dt))
             # use to store the gaze and head submovements that have expired
             expired_gaze = []
@@ -230,13 +227,17 @@ class Andrist_SacccadeGenerator:
             for i in range(0, len(gaze_submovements)):
                 if t_index < gaze_submovements_indexes[i][1]:
                     self.gaze_positions[t_index] += gaze_submovements[i][t_index - gaze_submovements_indexes[i][0]]
+                elif t_index < gaze_submovements_indexes[i][0]:
+                    pass
                 else:
                     expired_gaze.append(i)
             # update the head positions
             self.head_positions[t_index] = self.head_positions[max(t_index - 1, 0)]
             for i in range(0, len(head_submovements)):
-                if t_index < head_submovements_indexes[i][1]:
+                if t_index < head_submovements_indexes[i][1] and t_index >= head_submovements_indexes[i][0]:
                     self.head_positions[t_index] += head_submovements[i][t_index - head_submovements_indexes[i][0]]
+                elif t_index < head_submovements_indexes[i][0]:
+                    pass
                 else:
                     expired_head.append(i)
             # only generate saccade at fixed intervals i.e. if saccade_generation_test is an integer
@@ -301,6 +302,8 @@ class Andrist_SacccadeGenerator:
         eye_kf = []
         head_kf = []
         ts = np.arange(0, self.target_times[-1] + 10.0, self.simulation_dt)
+        if ts.shape[0] > self.gaze_positions.shape[0]:
+            ts = ts[0:self.gaze_positions.shape[0]] 
         # insert the key frames for gaze into the output array
         for i in range(0, ts.shape[0]):
             eye_kf.append([float(ts[i]), float(self.gaze_positions[i][0]), float(self.gaze_positions[i][1]), float(self.gaze_positions[i][2])])

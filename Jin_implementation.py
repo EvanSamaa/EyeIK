@@ -41,6 +41,8 @@ class Jin_SacccadeGenerator:
         eye_kf = []
         head_kf = []
         ts = np.arange(0, self.target_times[-1] + 10.0, self.simulation_dt)
+        if ts.shape[0] > self.gaze_positions.shape[0]:
+            ts = ts[0:self.gaze_positions.shape[0]]
         # insert the key frames for gaze into the output array
         for i in range(0, ts.shape[0]):
             eye_kf.append([float(ts[i]), float(self.gaze_positions[i][0]), float(self.gaze_positions[i][1]), float(self.gaze_positions[i][2])])
@@ -90,7 +92,7 @@ class GMM_Decomposition:
                 try:               
                     temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
                 except:
-                    alt_filepath = "/Users/evanpan/Documents/GitHub/Gaze_project/prototypes/Jin2019/model/" + filepath[54:]
+                    alt_filepath = "C:/Users/evan1/OneDrive/Documents/GitHub/EyeIK/jin2019_related_files/model/" + filepath[54:]
                     temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
                     
         return cls(temp_gmm_dict)
