@@ -664,7 +664,7 @@ class Proposed_saccade_generator:
         ending_frame = int(round(t1 / self.simulation_dt))
         # return the submovement and everything
         return submovement, [starting_frame, ending_frame]
-    def handle_microsaccade(self, start_frame, prev_saccade_frame, end_frame, saccade_factor=0.05,
+    def handle_microsaccade(self, start_frame, prev_saccade_frame, end_frame, saccade_facto Nr=0.05,
                             avg_saccade_interval=0.5):
         output_list = []
         rig_factor = 10  # I believe it should be rig_factor[130] and rig_factor[131],
