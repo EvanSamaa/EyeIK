@@ -106,7 +106,8 @@ class Itti_SacccadeGenerator:
         t0 = int(t0 / dt)
         tf = int(tf / dt)
         t = np.arange(t0, tf, 1)
-        v = (t0 - t) * (tf - t - 1) / (t0 - tf + 1)
+        v =(tf - t - 1) / (t0 - tf + 1)
+        v *=  (t0 - t) 
         v = v / np.sum(v)
         return v
     def add_gaze_submovement(self, t0, t1, p0, p1):
@@ -114,7 +115,12 @@ class Itti_SacccadeGenerator:
         if np.linalg.norm(p0 - p1) <= 0.00001:
             return None, None
         # get the velocity profile of the submovement
+        if t1 - t0 <= 0.001 or t0 > t1:
+            return None, None   
         submovement_speed = self.gaze_velocity_profile(t0, t1, self.simulation_dt)
+        # check if submovement_speed is nan
+        if np.isnan(submovement_speed).any():
+            submovement_speed = np.array([0, 0])
         submovement_speed = np.expand_dims(submovement_speed, axis=1)
         # get the direction of the submovement
         submovement_direction = p1 - p0

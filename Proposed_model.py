@@ -517,6 +517,16 @@ class Proposed_saccade_generator:
         """
         gaze_intervals_time = []
         gaze_intervals_pos = []
+        for i in range(0, len(time_arr)-1):
+            gaze_intervals_time.append([time_arr[i], time_arr[i+1]])
+            gaze_intervals_pos.append(np.expand_dims(pos_arr[i], 0))
+        gaze_intervals_time.append([time_arr[-1], time_arr[-1] + 10])
+        gaze_intervals_pos.append(np.expand_dims(pos_arr[-1], 0))
+        gaze_intervals_pos = np.concatenate(gaze_intervals_pos, axis=0)
+        return gaze_intervals_time, gaze_intervals_pos
+        
+        
+        
         start = 0
         end = 0
         for i in range(0, len(time_arr)):
@@ -664,7 +674,7 @@ class Proposed_saccade_generator:
         ending_frame = int(round(t1 / self.simulation_dt))
         # return the submovement and everything
         return submovement, [starting_frame, ending_frame]
-    def handle_microsaccade(self, start_frame, prev_saccade_frame, end_frame, saccade_facto Nr=0.05,
+    def handle_microsaccade(self, start_frame, prev_saccade_frame, end_frame, saccade_factor=0.05,
                             avg_saccade_interval=0.5):
         output_list = []
         rig_factor = 10  # I believe it should be rig_factor[130] and rig_factor[131],
@@ -903,6 +913,16 @@ class Proposed_saccade_generator_with_graph:
         """
         gaze_intervals_time = []
         gaze_intervals_pos = []
+        for i in range(0, len(time_arr)-1):
+            gaze_intervals_time.append([time_arr[i], time_arr[i+1]])
+            gaze_intervals_pos.append(np.expand_dims(pos_arr[i], 0))
+        gaze_intervals_time.append([time_arr[-1], time_arr[-1] + 10])
+        gaze_intervals_pos.append(np.expand_dims(pos_arr[-1], 0))
+        gaze_intervals_pos = np.concatenate(gaze_intervals_pos, axis=0)
+        return gaze_intervals_time, gaze_intervals_pos
+    
+        gaze_intervals_time = []
+        gaze_intervals_pos = []
         start = 0
         end = 0
         for i in range(0, len(time_arr)):
@@ -1121,7 +1141,7 @@ class Proposed_saccade_generator_with_graph:
                 dir_change = False
                 for i in range(len(head_submovements)):
                     submovement_dir = head_submovements[i].sum(axis=0)
-                    if submovement_dir[1] * most_recent_head_submovement_dir[1] < 0:
+                    if submovement_dir[0] * most_recent_head_submovement_dir[0] < 0:
                         dir_change = True
                 # if we need to change direction
                 if dir_change:   
