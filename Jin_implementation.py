@@ -92,8 +92,9 @@ class GMM_Decomposition:
                 try:               
                     temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
                 except:
-                    alt_filepath = "C:/Users/evan1/OneDrive/Documents/GitHub/EyeIK/jin2019_related_files/model/" + filepath[54:]
+                    alt_filepath = "./jin2019_related_files/model/" + filepath[54:]
                     temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
+
                     
         return cls(temp_gmm_dict)
     def save_model(self, model_path: str):
