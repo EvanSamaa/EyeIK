@@ -26,6 +26,7 @@ class Ground_truth_SacccadeGenerator:
         eye_pos = np.concatenate([eye_pos_pre_transpose[:, :, 0:1], eye_pos_pre_transpose[:, :, 2:3], eye_pos_pre_transpose[:, :, 1:2], eye_pos_pre_transpose[:, :, 1:2]], axis=2)
         head_pos = np.concatenate([head_pos_pre_transpose[:, :, 0:1], head_pos_pre_transpose[:, :, 2:3], head_pos_pre_transpose[:, :, 1:2]], axis=2)
         eye_pos[0, :, 0] = eye_pos[0, :, 0] - eye_pos[0, 0, 0]
+        eye_pos[0, :, 1:3] = eye_pos[0, :, 1:3] + head_pos[0, :, 1:] 
         head_pos[0, :, 0] = head_pos[0, :, 0] - head_pos[0, 0, 0]
         
         
