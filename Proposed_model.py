@@ -948,7 +948,7 @@ class Proposed_saccade_generator_with_graph:
                 print("I wanna eat korean fried chicken")
         gaze_intervals_pos = np.concatenate(gaze_intervals_pos, axis=0)
         return gaze_intervals_time, gaze_intervals_pos
-    def __init__(self, target_times, target_positions, target_index, internal_model, dt=0.025):
+    def __init__(self, target_times, target_positions, target_index, internal_model, dt=0.025, reach_target_at_times=False, head_delay = 0.05):
         # gaze state variables:
         self.gaze_current_goal_position = internal_model.get_base_pose()
         self.head_current_goal_position = internal_model.get_base_pose()
@@ -960,8 +960,9 @@ class Proposed_saccade_generator_with_graph:
         self.simulation_dt = dt
         self.submovement_dt = 0.200 
         self.movement_threshold = 200  # use to detect intervals with no gaze shift. In which micro saccade are generated
-        self.head_movement_duration = 0.4
-        
+        self.head_movement_duration = 0.3
+        self.reach_target_at_times = reach_target_at_times
+        self.head_delay = head_delay
         # Internal Model of the scene (will introduce bias, errors and everything)
         self.internal_model = internal_model
 
@@ -1163,6 +1164,7 @@ class Proposed_saccade_generator_with_graph:
                     expired_head.append(i)
             # only generate saccade at fixed intervals i.e. if saccade_generation_test is an integer
             saccade_generation_test = self.t / self.submovement_dt
+            ahead = 0.0
             if abs(saccade_generation_test - int(round(saccade_generation_test))) <= 0.001:
                 # obtain gaze shift duration as per properties of main sequence
                 gaze_movement_duration = self.get_saccade_duration(self.gaze_current_goal_position,
@@ -1170,8 +1172,10 @@ class Proposed_saccade_generator_with_graph:
                 # add the gaze submovement
                 next_gaze_index = int(self.interpolate_gaze_goal_index(self.t))
                 next_gaze_goal = self.internal_model.estimate_target_pose(next_gaze_index)
-                gaze_submovement, gaze_submovement_range = self.add_gaze_submovement(self.t,
-                                                                                        self.t + gaze_movement_duration,
+                if self.reach_target_at_times:
+                    ahead = gaze_movement_duration
+                gaze_submovement, gaze_submovement_range = self.add_gaze_submovement(self.t - ahead,
+                                                                                        self.t + gaze_movement_duration - ahead,
                                                                                         self.gaze_current_goal_position,
                                                                                         next_gaze_goal)
                 if not gaze_submovement is None:
@@ -1199,12 +1203,11 @@ class Proposed_saccade_generator_with_graph:
                         pass
                          
                 # add the head movement
-                head_delay = 0.05
                 if len(head_submovements) > 0:
                     if len(head_submovements) >= 1:
                         head_delay = 0
-                head_submovement, head_submovement_range = self.add_head_submovement(self.t + head_delay,
-                                                                                     self.t + head_movement_duration + head_delay,
+                head_submovement, head_submovement_range = self.add_head_submovement(self.t + self.head_delay - ahead,
+                                                                                     self.t + head_movement_duration + self.head_delay - ahead,
                                                                                      self.head_current_goal_position,
                                                                                      self.interpolate_head_goal(self.t))
                 if not head_submovement is None:
