@@ -9,7 +9,7 @@ from EyeCatch_implementation import *
 
 
 class Jin_SacccadeGenerator:
-    def __init__(self, target_times, target_positions, target_index, internal_model):
+    def __init__(self, target_times, target_positions, target_index, internal_model, root_dir="./"):
         # gaze state variables:
         # video metadata
         self.target_times = target_times
@@ -19,8 +19,8 @@ class Jin_SacccadeGenerator:
         self.internal_model = internal_model
         self.eye_catch = EyeCatch_SacccadeGenerator(target_times, target_positions, target_index, internal_model)
         self.simulation_dt = self.eye_catch.simulation_dt
-        self.decomp_azimuth = GMM_Decomposition.fromfile("jin2019_related_files/model/head_eye_decomposition_azimuth_60_clusters_fixation/")
-        self.decomp_elevaiton = GMM_Decomposition.fromfile("jin2019_related_files/model/head_eye_decomposition_elevation_60_clusters_fixation/")
+        self.decomp_azimuth = GMM_Decomposition.fromfile(root_dir + "jin2019_related_files/model/head_eye_decomposition_azimuth_60_clusters_fixation/")
+        self.decomp_elevaiton = GMM_Decomposition.fromfile(root_dir + "jin2019_related_files/model/head_eye_decomposition_elevation_60_clusters_fixation/")
         self.gaze_positions = []
         self.head_positions = []
         self.micro_saccade_kf = []
@@ -93,8 +93,11 @@ class GMM_Decomposition:
                     temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
                 except:
                     alt_filepath = "./jin2019_related_files/model/" + filepath[54:]
-                    temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
-
+                    try:
+                        temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
+                    except:
+                        alt_filepath = "../jin2019_related_files/model/" + filepath[54:]
+                        temp_gmm_dict[int(float(key))] = pkl.load(open(alt_filepath, "rb"))
                     
         return cls(temp_gmm_dict)
     def save_model(self, model_path: str):

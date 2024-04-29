@@ -5,11 +5,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 from prototypes.InputDataStructures import Dietic_Conversation_Gaze_Scene_Info, MultiPartyConversationalSceneInfo, AgentInfo, AgentInfo_final
 from Geometry_Util import rotation_angles_frome_positions, rotation_axis_angle_from_vector, directions_from_rotation_angles, rotation_matrix_from_axis_angle, rotation_matrix_from_vectors
-from Signal_processing_utils import dx_dt, laplacian_smoothing
+from Signal_processing_utils import dx_dt, laplacian_smoothing, sparse_key_smoothing
 from InputStructures import InputStructure
 import cvxpy as cp
 import networkx as nx
-
+import time
 
 from prototypes.Optimization_based_head_eye_seperator.Baseline_optimization import optimize_for_head_gaze_breakdown, optimize_for_head_gaze_breakdown_dynamic_scene, optimize_for_head_gaze_breakdown_three_party_scene
 class InternalModelCenterBias:
@@ -985,12 +985,14 @@ class Proposed_saccade_generator_with_graph:
         self.gaze_positions = np.tile(self.gaze_positions, [end_t, 1])
         self.gaze_pos_as_angles = rotation_angles_frome_positions(self.target_positions)
         self.input_gaze_pos_as_angles_per_frame = np.zeros((end_t, 2)) 
+        min_index = int(np.min(self.target_index))
         for i in range(0, end_t):
-            self.input_gaze_pos_as_angles_per_frame[i] = self.gaze_pos_as_angles[int(self.interpolate_gaze_goal_index(i * self.simulation_dt))]
-        self.input_gaze_pos_as_angles_per_frame_smoothed = np.array(laplacian_smoothing(self.input_gaze_pos_as_angles_per_frame, 80))   
+            self.input_gaze_pos_as_angles_per_frame[i] = self.gaze_pos_as_angles[int(self.interpolate_gaze_goal_index(i * self.simulation_dt)) - min_index]
+        self.input_gaze_pos_as_angles_per_frame_smoothed = np.array(laplacian_smoothing(self.input_gaze_pos_as_angles_per_frame, 100))   
         # plt.plot(self.input_gaze_pos_as_angles_per_frame[:, 0])
         # plt.plot(self.input_gaze_pos_as_angles_per_frame_smoothed[:, 0])
         # plt.show()
+        
         self.head_positions = internal_model.get_base_pose().astype(np.float32)
         self.head_positions = np.expand_dims(self.head_positions, axis=0)
         self.head_positions = np.tile(self.head_positions, [end_t, 1])
@@ -1256,7 +1258,6 @@ class Proposed_saccade_generator_with_graph:
             micro_saccade_list, prev_saccade = self.handle_microsaccade(start, prev_saccade, end)
             self.micro_saccade_kf.append(micro_saccade_list)
         return self.prepare_output()
-
     def prepare_output(self):
         eye_kf = []
         head_kf = []

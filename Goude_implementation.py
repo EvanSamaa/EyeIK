@@ -371,6 +371,8 @@ class Goude_SacccadeGenerator:
         # ts = np.arange(0, arr.shape[0]) / fps
         arr_interp = interp1d(ts, arr, axis=0, kind="previous", bounds_error=False, fill_value="extrapolate")
         def mock_fixation_point_grabber(t):
+            if t < ts[0]:
+                return arr_interp(ts[0])
             return arr_interp(t)
         return mock_fixation_point_grabber
     def interpolate_goal(self, t):
