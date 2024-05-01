@@ -31,4 +31,5 @@ def load_juggling_animation(json_path):
                 cmds.setKeyframe(sp, attribute = 'scaleX', value = 1, time = 30 * time[index_t])
                 cmds.setKeyframe(sp, attribute = 'scaleY', value = 1, time = 30 * time[index_t])
                 cmds.setKeyframe(sp, attribute = 'scaleZ', value = 1, time = 30 * time[index_t])
+                
 load_juggling_animation("C://Users//evansamaa//Documents//GitHub//EyeIK//Juggling//juggling_TAP_output//HD_juggle_tennis_fast_outputpositions.json")

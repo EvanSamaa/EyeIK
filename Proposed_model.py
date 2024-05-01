@@ -881,7 +881,7 @@ class Proposed_saccade_generator_with_graph:
                     return self.target_positions[i]
         print("Error")
     def interpolate_gaze_goal_index(self, t):
-        if t < self.target_times[0]:
+        if t <= self.target_times[0]:
             return self.target_index[0]
         elif t >= self.target_times[-1]:
             return self.target_index[-1]
