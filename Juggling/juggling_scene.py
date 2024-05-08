@@ -52,10 +52,16 @@ class JugglingScene:
         
         self.motion_json = json.load(open(motion_data_path, "r"))
         self.look_at_id = np.array(self.motion_json["look_at_indices"], dtype=np.int)
-        
+        self.look_at_id = self.look_at_id
+    def get_ball_i_trajectory(self, i):
+        output_traj = np.zeros(self.object_pos[0].shape)
+        for j in range(0, output_traj.shape[0]):
+            output_traj[j] = self.transform_world_to_local(self.object_pos[i, j])
+        return output_traj
+    
     def get_gaze_trajectory(self):
         output_traj = np.zeros(self.object_pos[0].shape)
-        print(output_traj.shape)
+        # print(output_traj.shape)
         for i in range(0, output_traj.shape[0]):
             output_traj[i] = self.transform_world_to_local(self.object_pos[self.look_at_id[i], i])
             # output_traj[i] = self.object_pos[self.look_at_id[i], i]

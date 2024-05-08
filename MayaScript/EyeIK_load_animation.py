@@ -210,12 +210,13 @@ def load_gaze(filename, rig, tobii = False):
     dims = ["x", "y", "z"]
     cmds.setKeyframe("xneck_pairBlend_blend_speech1", v=0.5, t=0)
     cmds.setKeyframe("yneck_pairBlend_blend_speech1", v=0.5, t=0)
-    for k in range(0, 3):
-        t = neck[k*2]
-        v = neck[k*2+1]
-        for i in range(len(t)):
-            cmds.setKeyframe("{}neck_pairBlend_speech".format(dims[k]), v=-(v[i]),
-            t=t[i] * fps)
+    if len(neck) > 0:
+        for k in range(0, 3):
+            t = neck[k*2]
+            v = neck[k*2+1]
+            for i in range(len(t)):
+                cmds.setKeyframe("{}neck_pairBlend_speech".format(dims[k]), v=-(v[i]),
+                t=t[i] * fps)
     if len(ambient_neck) > 0:
         for k in range(0, 3):
             t = ambient_neck[k*2]
@@ -230,5 +231,5 @@ def load_gaze(filename, rig, tobii = False):
 # load_gaze("C:/Users/evansamaa/Desktop/Gaze_project/data/tobii_data/shakira/tobii_rotation.pkl", "jali", True)
 
 # load_gaze("F:/MASC/JALI_gaze/Animations/green_book_letter/outputs/raw_clip_neural_0.pkl", "jali")
-load_gaze("C:/Users/evan1/OneDrive/Documents/GitHub/EyeIK/animation_data\Proposed.pkl", "jali")
+load_gaze("C:/Users/evan1/OneDrive/Documents/GitHub/EyeIK/Juggling/output\\task_alternating_column_output_Proposed_graph_smooth_pursuit_with_saccade_consider_start_and_end_pos.pkl", "jali")
 # load_gaze("F:/MASC/JALI_gaze/animations/eval_royal_with_cheese/non_conversational_output/pulp_fiction_1.pkl", "jali")
