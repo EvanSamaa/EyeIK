@@ -32,4 +32,5 @@ def load_juggling_animation(json_path):
                 cmds.setKeyframe(sp, attribute = 'scaleY', value = 1, time = 30 * time[index_t])
                 cmds.setKeyframe(sp, attribute = 'scaleZ', value = 1, time = 30 * time[index_t])
                 
-load_juggling_animation("C://Users//evan1//OneDrive//Documents//GitHub//EyeIK//Juggling//juggling_TAP_output//alternating_column_outputpositions.json")
+# load_juggling_animation("C://Users//evan1//OneDrive//Documents//GitHub//EyeIK//Juggling//juggling_TAP_output//alternating_column_outputpositions.json")
+load_juggling_animation("C:/Users/evansamaa/Documents/GitHub/EyeIK/Juggling/juggling_TAP_output/cascade_long_outputpositions.json")

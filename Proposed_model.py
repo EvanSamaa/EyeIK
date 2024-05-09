@@ -1353,7 +1353,7 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
                 print("I wanna eat korean fried chicken")
         gaze_intervals_pos = np.concatenate(gaze_intervals_pos, axis=0)
         return gaze_intervals_time, gaze_intervals_pos
-    def __init__(self, target_times, target_positions, target_index, internal_model, dt=0.025, reach_target_at_times=False, head_delay = 0.05):
+    def __init__(self, target_times, target_positions, target_index, internal_model, dt=0.025, reach_target_at_times=True, head_delay = 0.05, do_saccade=True):
         # gaze state variables:
         self.gaze_current_goal_position = internal_model.get_base_pose()
         self.head_current_goal_position = internal_model.get_base_pose()
@@ -1361,6 +1361,7 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
         self.head_most_recent_index = 0
         self.dire_change_delay = 0.0
         
+        self.do_saccade = do_saccade
         # meta parameters:
         self.simulation_dt = dt
         self.submovement_dt = 0.200 
@@ -1394,7 +1395,7 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
         min_index = int(np.min(self.target_index))
         for i in range(0, end_t):
             self.input_gaze_pos_as_angles_per_frame[i] = self.gaze_pos_as_angles[int(self.interpolate_gaze_goal_index(i * self.simulation_dt)) - min_index]
-        self.input_gaze_pos_as_angles_per_frame_smoothed = np.array(laplacian_smoothing(self.input_gaze_pos_as_angles_per_frame, 100))   
+        self.input_gaze_pos_as_angles_per_frame_smoothed = np.array(laplacian_smoothing(self.input_gaze_pos_as_angles_per_frame, 300))   
         # plt.plot(self.input_gaze_pos_as_angles_per_frame[:, 0])
         # plt.plot(self.input_gaze_pos_as_angles_per_frame_smoothed[:, 0])
         # plt.show()
@@ -1407,10 +1408,13 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
         self.micro_saccade_kf = []
     def get_saccade_duration(self, pos0, pos1):
         # based on this figure https://www.nature.com/articles/s41598-022-09029-8/figures/3
-        rot0 = rotation_angles_frome_positions(pos0)
-        rot1 = rotation_angles_frome_positions(pos1)
-        diff = np.linalg.norm(rot0 - rot1)
-        duration = 20 + diff * 1.33
+        # rot0 = rotation_angles_frome_positions(pos0)
+        # rot1 = rotation_angles_frome_positions(pos1)
+        
+        axis, angle = rotation_axis_angle_from_vector(pos0, pos1)
+        angle = angle * 180 / np.pi
+
+        duration = 20 + angle * 1.33
         return duration / 1000
     def gaze_velocity_profile(self, t0: float, tf: float, dt: float):
         t0 = int(round(t0 / dt))
@@ -1595,16 +1599,24 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
                 head_rot_axis, head_rot_angle = rotation_axis_angle_from_vector(head_current_position, head_goal_position)
                 head_rot_angle_speed = head_rot_angle / self.simulation_dt
                 # normalize it so that head_rot_angle_speed is <= 100
-                head_rot_angle_speed = min(head_rot_angle_speed, 20/180 * np.pi)
+                if self.do_saccade:
+                    head_rot_angle_speed = min(head_rot_angle_speed, 5/180 * np.pi)
+                    scaling = np.array([1, 0.1, 1])
+                
+                else:
+                    head_rot_angle_speed = min(head_rot_angle_speed, 20/180 * np.pi)
+                    scaling = np.array([1, 1, 1])
+                
                 head_rot_matrix = rotation_matrix_from_axis_angle(head_rot_axis, head_rot_angle_speed * self.simulation_dt)
                 head_movement_displacement = (head_rot_matrix - np.eye(3)) @ (head_current_position)
+                head_movement_displacement = head_movement_displacement * scaling
                 # add it to movement
                 self.head_positions[t_index] = head_current_position + head_movement_displacement
                 self.head_current_goal_position += head_movement_displacement
             # only generate saccade at fixed intervals i.e. if saccade_generation_test is an integer
             saccade_generation_test = self.t / self.submovement_dt
             ahead = 0.0
-            if abs(saccade_generation_test - int(round(saccade_generation_test))) <= 0.001:
+            if abs(saccade_generation_test - int(round(saccade_generation_test))) <= 0.001 and self.do_saccade:
                 # obtain gaze shift duration as per properties of main sequence
                 gaze_movement_duration = self.get_saccade_duration(self.gaze_current_goal_position,
                                                                    self.interpolate_gaze_goal(self.t))
