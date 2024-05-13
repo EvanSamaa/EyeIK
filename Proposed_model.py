@@ -1395,7 +1395,7 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
         min_index = int(np.min(self.target_index))
         for i in range(0, end_t):
             self.input_gaze_pos_as_angles_per_frame[i] = self.gaze_pos_as_angles[int(self.interpolate_gaze_goal_index(i * self.simulation_dt)) - min_index]
-        self.input_gaze_pos_as_angles_per_frame_smoothed = np.array(laplacian_smoothing(self.input_gaze_pos_as_angles_per_frame, 300))   
+        self.input_gaze_pos_as_angles_per_frame_smoothed = np.array(laplacian_smoothing(self.input_gaze_pos_as_angles_per_frame, 200))   
         # plt.plot(self.input_gaze_pos_as_angles_per_frame[:, 0])
         # plt.plot(self.input_gaze_pos_as_angles_per_frame_smoothed[:, 0])
         # plt.show()
@@ -1585,7 +1585,7 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
                 eye_rot_axis, eye_rot_angle = rotation_axis_angle_from_vector(eye_current_position, eye_goal_position)
                 eye_rot_angle_speed = eye_rot_angle / self.simulation_dt
                 # normalize it so that eye_rot_angle_speed is <= 100
-                eye_rot_angle_speed = min(eye_rot_angle_speed, 100/180 * np.pi)
+                eye_rot_angle_speed = min(eye_rot_angle_speed, 120/180 * np.pi)
                 eye_rot_matrix = rotation_matrix_from_axis_angle(eye_rot_axis, eye_rot_angle_speed * self.simulation_dt)
                 eye_movement_displacement = (eye_rot_matrix - np.eye(3)) @ (eye_current_position)
                 # add it to movement
@@ -1601,7 +1601,7 @@ class Proposed_saccade_generator_with_graph_smooth_pursuit:
                 # normalize it so that head_rot_angle_speed is <= 100
                 if self.do_saccade:
                     head_rot_angle_speed = min(head_rot_angle_speed, 5/180 * np.pi)
-                    scaling = np.array([1, 0.1, 1])
+                    scaling = np.array([1, 1, 1])
                 
                 else:
                     head_rot_angle_speed = min(head_rot_angle_speed, 20/180 * np.pi)

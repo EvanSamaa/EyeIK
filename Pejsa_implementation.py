@@ -42,7 +42,7 @@ class Pejsa_SacccadeGenerator:
         # meta parameters:
         self.head_latency = 0.1
         self.simulation_dt = 0.01
-        self.submovement_dt = 0.200
+        self.submovement_dt = 0.05
         self.head_propensity = head_propensity
         self.movement_threshold = 2000 # use to detect intervals with no gaze shift. In which micro saccade are generated
 
@@ -104,7 +104,6 @@ class Pejsa_SacccadeGenerator:
         else:
             v = 12 * r**3 - 27*r**2 + 18*r - 2.75
         return v
-    
     def gaze_velocity_profile(self, t0: float, tf: float, dt: float):
         t0 = int(t0 / dt)
         tf = int(tf / dt)
