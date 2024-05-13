@@ -1110,7 +1110,7 @@ class Proposed_saccade_generator_with_graph:
         # self.target_positions_head = self.target_positions
         self.gaze_current_goal_position = self.target_gaze_intervals_pos[0]
         self.head_current_goal_position = self.target_gaze_intervals_pos[0]
-        print(self.head_current_goal_position.shape)
+        # print(self.head_current_goal_position.shape)
         for i in range(0, self.head_positions.shape[0]):
             self.head_positions[i] = self.head_current_goal_position
             self.gaze_positions[i] = self.gaze_current_goal_position
